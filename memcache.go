@@ -323,6 +323,34 @@ func (this *Memcache) Append(key string, value string, cas ...uint64) (res bool,
 	return res, err
 } /*}}}*/
 
+func (this *Memcache) Touch(key string, expires int, cas ...uint64) (res bool, err error) { /*{{{*/
+	this.RLock()
+	defer this.RUnlock()
+	server := this.nodes.getServerByKey(key)
+	if server == nil {
+		return false, ErrNotConn
+	}
+
+	for i := 0; i < badTryCnt; i++ {
+		conn, e := server.pool.Get()
+		if e != nil && e == ErrNotConn {
+			this.sendBadServerNotice()
+			return false, e
+		}
+
+		res, err = conn.touth(OP_TOUCH, key, uint32(expires), cas...)
+
+		if err == ErrBadConn {
+			server.pool.Release(conn)
+		} else {
+			server.pool.Put(conn)
+			break
+		}
+	}
+
+	return res, err
+} /*}}}*/
+
 func (this *Memcache) Prepend(key string, value string, cas ...uint64) (res bool, err error) { /*{{{*/
 	this.RLock()
 	defer this.RUnlock()

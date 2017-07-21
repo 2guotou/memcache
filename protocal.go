@@ -23,6 +23,7 @@ const (
 	OP_GETK      opcode_t = 0x0c
 	OP_APPEND    opcode_t = 0x0e
 	OP_PREPEND   opcode_t = 0x0f
+	OP_TOUCH     opcode_t = 0x1c //not fixed command, but proposal for 1.6
 )
 
 type status_t uint16

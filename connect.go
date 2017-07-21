@@ -316,6 +316,53 @@ func (this *Connection) appends(opcode opcode_t, key string, value string, cas .
 	return true, nil
 } /*}}}*/
 
+// expires 是整形字符串, 既可以是秒数, 亦可是 Unix 时间戳
+// MUST have extras.
+// MUST have key.
+// MUST NOT have value.
+func (this *Connection) touth(opcode opcode_t, key string, expires uint32, cas ...uint64) (res bool, err error) {
+	var set_cas uint64 = 0
+	if len(cas) > 0 {
+		set_cas = cas[0]
+	}
+
+	header := &request_header{
+		magic:    MAGIC_REQ,
+		opcode:   opcode,
+		keylen:   uint16(len(key)),
+		extlen:   0x04, //extra 中只有 expiration 参数, 占 4 个 Byte
+		datatype: TYPE_RAW_BYTES,
+		status:   0x00,
+		bodylen:  uint32(len(key)),
+		opaque:   0x00,
+		cas:      set_cas,
+	}
+
+	if err := this.writeHeader(header); err != nil {
+		return false, err
+	}
+
+	extra_byte := make([]byte, 4)                        //做一个二进制容器 extra 数据
+	binary.BigEndian.PutUint32(extra_byte[4:8], expires) //植入过期时间数据 uint32 expiration
+	this.buffered.Write(extra_byte)                      //写入 Extra
+	this.buffered.Write([]byte(key))                     //写入 Key
+
+	if err := this.flushBufferToServer(); err != nil {
+		return false, ErrBadConn
+	}
+
+	resp, err := this.readResponse()
+	if err != nil {
+		return false, err
+	}
+
+	if err := this.checkResponseError(resp.header.status); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (this *Connection) flush(delay ...uint32) (res bool, err error) { /*{{{*/
 	var set_delay uint32 = 0
 	if len(delay) > 0 {

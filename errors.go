@@ -18,7 +18,7 @@ var (
 	ErrDeltaBadVal  = errors.New("Increment/Decrement on non-numberic value")
 	ErrAuthError    = errors.New("Auth error")
 	ErrAuthContinue = errors.New("Auth continue")
-	ErrCmd          = errors.New("Unkown commond")
+	ErrCmd          = errors.New("Unkown command")
 	ErrMem          = errors.New("Out of memery")
 	ErrUnkown       = errors.New("Unkown error")
 )

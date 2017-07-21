@@ -333,7 +333,7 @@ func (this *Connection) touth(opcode opcode_t, key string, expires uint32, cas .
 		extlen:   0x04, //extra 中只有 expiration 参数, 占 4 个 Byte
 		datatype: TYPE_RAW_BYTES,
 		status:   0x00,
-		bodylen:  uint32(len(key)),
+		bodylen:  uint32(len(key) + 0x04),
 		opaque:   0x00,
 		cas:      set_cas,
 	}
@@ -342,10 +342,10 @@ func (this *Connection) touth(opcode opcode_t, key string, expires uint32, cas .
 		return false, err
 	}
 
-	extra_byte := make([]byte, 4)                        //做一个二进制容器 extra 数据
-	binary.BigEndian.PutUint32(extra_byte[4:8], expires) //植入过期时间数据 uint32 expiration
-	this.buffered.Write(extra_byte)                      //写入 Extra
-	this.buffered.Write([]byte(key))                     //写入 Key
+	extra_byte := make([]byte, 4)
+	binary.BigEndian.PutUint32(extra_byte, uint32(expires)) //uint32 flags
+	this.buffered.Write(extra_byte)                         //写入 Extra
+	this.buffered.Write([]byte(key))                        //写入 Key
 
 	if err := this.flushBufferToServer(); err != nil {
 		return false, ErrBadConn

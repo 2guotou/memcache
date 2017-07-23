@@ -323,7 +323,7 @@ func (this *Memcache) Append(key string, value string, cas ...uint64) (res bool,
 	return res, err
 } /*}}}*/
 
-func (this *Memcache) Touch(key string, expires int, cas ...uint64) (res bool, err error) { /*{{{*/
+func (this *Memcache) Touch(key string, expires uint32, cas ...uint64) (res bool, err error) { /*{{{*/
 	this.RLock()
 	defer this.RUnlock()
 	server := this.nodes.getServerByKey(key)
@@ -338,7 +338,7 @@ func (this *Memcache) Touch(key string, expires int, cas ...uint64) (res bool, e
 			return false, e
 		}
 
-		res, err = conn.touth(OP_TOUCH, key, uint32(expires), cas...)
+		res, err = conn.touth(OP_TOUCH, key, expires, cas...)
 
 		if err == ErrBadConn {
 			server.pool.Release(conn)

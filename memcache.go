@@ -21,11 +21,12 @@ type serverManager struct {
 
 var (
 	badTryCnt       = 4
-	defaultMaxConn  = 128
+	defaultMaxConn  = 1024
 	defaultInitConn = 8
 	defaultIdleTime = time.Hour * 2
 )
 
+// NewMemcache ...
 func NewMemcache(server_list []*Server) (mem *Memcache, err error) { /*{{{*/
 	if server_list == nil {
 		return nil, errors.New("Server is nil or address is empty")
